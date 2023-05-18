@@ -115,6 +115,7 @@ m4_define([ADAPTER_OPT], [m4_translit(ADAPTER_ARG($1), [_], [-])])
 
 m4_define([USB1_ADAPTERS],
 	[[[ftdi], [MPSSE mode of FTDI based devices], [FTDI]],
+  [[ch347], [Mode 3 of the CH347 devices], [CH347]],
 	[[stlink], [ST-Link Programmer], [HLADAPTER_STLINK]],
 	[[ti_icdi], [TI ICDI JTAG Programmer], [HLADAPTER_ICDI]],
 	[[ulink], [Keil ULINK JTAG Programmer], [ULINK]],
@@ -177,7 +178,7 @@ AC_ARG_ENABLE([doxygen-pdf],
 AC_SUBST([doxygen_as_pdf])
 AC_MSG_CHECKING([whether to build Doxygen as PDF])
 AC_MSG_RESULT([$doxygen_as_pdf])
-
+ 
 AC_ARG_ENABLE([gccwarnings],
   AS_HELP_STRING([--disable-gccwarnings], [Disable compiler warnings]),
   [gcc_warnings=$enableval], [gcc_warnings=yes])
@@ -377,6 +378,10 @@ AC_ARG_ENABLE([internal-libjaylink],
   [Disable building internal libjaylink]),
   [use_internal_libjaylink=$enableval], [use_internal_libjaylink=yes])
 
+AC_ARG_ENABLE([ch347],
+  AS_HELP_STRING([--enable-ch347], [Enable building support for CH347 (for Win32 only)]),
+  [build_ch347=$enableval], [build_ch347=no])
+
 AC_ARG_ENABLE([remote-bitbang],
   AS_HELP_STRING([--enable-remote-bitbang], [Enable building support for the Remote Bitbang jtag driver]),
   [build_remote_bitbang=$enableval], [build_remote_bitbang=no])
@@ -388,7 +393,7 @@ AS_CASE(["${host_cpu}"],
       AC_MSG_WARN([--disable-parport-ppdev is not supported by the host CPU])
     ])
     parport_use_ppdev=yes
-])
+])  
 
 AS_CASE([$host],
   [*-cygwin*], [
@@ -508,6 +513,16 @@ AS_IF([test "x$build_bcm2835gpio" = "xyes"], [
   AC_DEFINE([BUILD_BCM2835GPIO], [1], [1 if you want bcm2835gpio.])
 ], [
   AC_DEFINE([BUILD_BCM2835GPIO], [0], [0 if you don't want bcm2835gpio.])
+])
+ 
+AS_IF([test "x$build_ch347" = "xyes"], [
+  AS_IF([test "x$is_win32" = "xyes"], [
+    AC_DEFINE([BUILD_CH347], [1], [1 if you want CH347.])
+  ], [
+    AC_MSG_ERROR([CH347 is only supported by WIN32 hosts])
+  ])
+], [
+  AC_DEFINE([BUILD_CH347], [0], [0 if you don't want CH347.])
 ])
 
 AS_IF([test "x$build_imx_gpio" = "xyes"], [
@@ -753,7 +768,8 @@ AM_CONDITIONAL([IS_CYGWIN], [test "x$is_cygwin" = "xyes"])
 AM_CONDITIONAL([IS_MINGW], [test "x$is_mingw" = "xyes"])
 AM_CONDITIONAL([IS_WIN32], [test "x$is_win32" = "xyes"])
 AM_CONDITIONAL([IS_DARWIN], [test "x$is_darwin" = "xyes"])
-AM_CONDITIONAL([BITQ], [test "x$build_bitq" = "xyes"])
+AM_CONDITIONAL([BITQ], [test "x$build_bitq" = "xyes"]) 
+AM_CONDITIONAL([CH347], [test "x$build_ch347" != "xno"])
 AM_CONDITIONAL([USE_LIBFTDI], [test "x$use_libftdi" = "xyes"])
 AM_CONDITIONAL([USE_LIBGPIOD], [test "x$use_libgpiod" = "xyes"])
 AM_CONDITIONAL([USE_HIDAPI], [test "x$use_hidapi" = "xyes"])
